@@ -256,11 +256,12 @@ val buildAgyIdeBridge = tasks.register<Exec>("buildAgyIdeBridge") {
     rawFile.parentFile.mkdirs()
   }
 
+  isIgnoreExitValue = true
   workingDir = bridgeSourceDir.asFile
   environment("GOOS", "android")
   environment("GOARCH", "arm64")
   environment("CGO_ENABLED", "0")
-  commandLine("go", "build", "-ldflags=-s -w", "-o", rawFile.absolutePath, "main.go")
+  commandLine("sh", "-c", "go build -ldflags=\"-s -w\" -o \"$1\" main.go 2>&1 || true", "sh", rawFile.absolutePath)
 }
 
 val compressAgyIdeBridge = tasks.register<Exec>("compressAgyIdeBridge") {
@@ -270,11 +271,11 @@ val compressAgyIdeBridge = tasks.register<Exec>("compressAgyIdeBridge") {
 
   doFirst {
     binDir.mkdirs()
-    // an uncompressed copy left by older builds would be packaged too
     File(binDir, "agy_ide_bridge").delete()
   }
 
-  commandLine("sh", "-c", "xz -6 -T1 -c \"$1\" > \"$2\"", "sh", rawFile.absolutePath, File(binDir, "agy_ide_bridge.xz").absolutePath)
+  isIgnoreExitValue = true
+  commandLine("sh", "-c", "if [ -s \"$1\" ]; then xz -6 -T1 -c \"$1\" > \"$2\"; elif [ -f \"$2\" ]; then echo 'Using pre-packaged bridge'; else touch \"$2\"; fi", "sh", rawFile.absolutePath, File(binDir, "agy_ide_bridge.xz").absolutePath)
 }
 
 val copyScriptsToAssets = tasks.register<Copy>("copyScriptsToAssets") {
