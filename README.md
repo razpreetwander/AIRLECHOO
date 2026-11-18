@@ -107,28 +107,56 @@ AIRLECHOO/
             ├── AndroidManifest.xml # Permissions (Mic, Camera, Internet)
             ├── java/com/airlechoo/app/MainActivity.kt # Kotlin WebView Activity
             └── res/values/styles.xml # Android dark theme
+├── server/                      # Go Engine & Terminal Supervisor
+│   ├── main.go                  # IDE Bridge Server (ports 1234 & 1235)
+│   ├── terminal_bridge.py       # Live Termux PTY Terminal Bridge (:1236)
+│   ├── go.mod, go.sum
+│   └── pkg/                     # Hub, Claude, Codex, OpenCode, FS, Git, Checkpoints
+├── airlechoo.sh                 # Unified Service Launcher & Status Daemon
 ```
 
 ---
 
-## 🚀 Running the App
+## 🚀 Running AIRLECHOO (Full Stack Engine + Web UI)
 
-### Option A: Directly in Termux / Local Browser
-Start a local web server:
+Start all services (Antigravity Hub, Go IDE Server, Termux Terminal Bridge, and Web UI) with a single command:
+
 ```bash
-python3 -m http.server 8080
+./airlechoo.sh start
 ```
+
+Check real-time health across all ports:
+```bash
+./airlechoo.sh status
+```
+
+| Service | Port | Description |
+| :--- | :--- | :--- |
+| **Echoo Web UI** | `8080` | Modern mobile interface with safe-area support |
+| **Go IDE Bridge** | `1234` | Supervises AI engines, `/api/fs/*`, `/api/models` |
+| **Antigravity Hub** | `1235` | Official Google Antigravity Agent RPC server |
+| **Termux Terminal** | `1236` | Real interactive bash shell via WebSocket & PTY |
+
 Open your mobile browser (e.g. Chrome) and navigate to:
 ```
 http://localhost:8080
 ```
 
-### Option B: Install as Android PWA (WebAPK)
+To stop all services:
+```bash
+./airlechoo.sh stop
+```
+
+---
+
+## 📱 Install as Android PWA (WebAPK)
 1. Open `http://localhost:8080` in Chrome on Android.
 2. Tap the browser menu `⋮` → **Add to Home screen** (or **Install App**).
 3. The app will install as a native-like standalone Android app with the Echoo icon!
 
-### Option C: Build Native Android APK
+---
+
+## 📦 Build Native Android APK
 See [`android/README.md`](file:///data/user/0/com.termux/files/home/AIRLECHOO/android/README.md) for full instructions on building via Android Studio or Capacitor.
 
 ---

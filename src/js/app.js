@@ -149,9 +149,30 @@ function demoReply(t){const s=t.toLowerCase();
   return `Got it. You asked: "${t}".\n\nThis is a working UI prototype. Connect a backend or AI API to get real, context-aware answers.`}
 function respond(t,node){const m=node||addMessage('assistant','');const box=m.querySelector('.atext');const old=m.querySelector('.actions');old&&old.remove();
   box.innerHTML='<div class="hlines" style="width:200px;padding:6px 0"><i></i><i></i><i></i></div>';
-  const words=demoReply(t).split(/(\s+)/);let i=0,out='';const g=gen={stop(){clearTimeout(g.t1);clearInterval(g.iv);finish(true)}};
+  let out='';
+  const g=gen={stop(){clearTimeout(g.t1);clearInterval(g.iv);finish(true)}};
   function finish(stopped){gen=null;setGen(false);box.textContent=out||(stopped?'⏹ Stopped':'');if(out){mountActions(m,out);if(!ghost&&cur){cur.msgs.push({r:'assistant',t:out});save.chats()}}}
-  setGen(true);g.t1=setTimeout(()=>{box.textContent='';g.iv=setInterval(()=>{for(let k=0,n=2+Math.floor(Math.random()*3);k<n&&i<words.length;k++)out+=words[i++];box.textContent=out;$('workspace').scrollTop=1e9;if(i>=words.length){clearInterval(g.iv);finish(false)}},45)},700)}
+  setGen(true);
+
+  function runDemoStream(){
+    const words=demoReply(t).split(/(\s+)/);let i=0;
+    g.t1=setTimeout(()=>{box.textContent='';g.iv=setInterval(()=>{for(let k=0,n=2+Math.floor(Math.random()*3);k<n&&i<words.length;k++)out+=words[i++];box.textContent=out;$('workspace').scrollTop=1e9;if(i>=words.length){clearInterval(g.iv);finish(false)}},45)},700);
+  }
+
+  // Attempt real AI generation if engine is online
+  if(window.EngineClient && window.EngineClient.isOnline){
+    window.EngineClient.sendPrompt(t, { model: curModel, deep }).then(reply => {
+      out = reply || '';
+      finish(false);
+    }).catch(err => {
+      console.warn('Engine agent response fell back to smart stream:', err);
+      runDemoStream();
+    });
+    return;
+  }
+
+  runDemoStream();
+}
 function send(){if(gen)return;const text=$('prompt').value.trim();if(!text&&!uploads.length)return;const files=uploads.slice(),t=text||'Attached files';
   addMessage('user',t,files);
   if(!ghost){if(!cur){cur={id:Date.now(),type:'chat',title:t.slice(0,32),ts:Date.now(),msgs:[]};chats.unshift(cur)}cur.msgs.push({r:'user',t});save.chats();renderHistory()}
@@ -692,8 +713,30 @@ async function termKey(e){if(e.key!=='Enter')return;const v=e.target.value;e.tar
 $('tmKb').onclick=()=>$('termIn').focus();
 $('tmNew').onclick=()=>{const n=sessions.length+1;sessions.push({n,log:TERM_WELCOME});actSess=sessions.length-1;save.term();renderTerminal();showSessPill()};
 document.querySelectorAll('#tmKeys [data-key]').forEach(b=>b.onclick=()=>{const k=b.dataset.key;const inp=$('termIn');if(!inp)return;if(k==='—')inp.value+='-';else if(k==='/')inp.value+='/';else if(k==='TAB')inp.value+='  ';inp.focus()});
-async function runShell(cmd,si){const c=cmd.trim();if(!c)return;const [bin,...rest]=c.split(/\s+/),P=l=>termPrint(si,l);
+async function runShell(cmd,si){
+  const c=cmd.trim();if(!c)return;const [bin,...rest]=c.split(/\s+/),P=l=>termPrint(si,l);
   if(bin==='clear'){sessions[si].log='';paintLog();return}
+
+  // 1. Try real execution in Termux via EngineClient
+  if(window.EngineClient){
+    try {
+      const res = await window.EngineClient.execCommand(c);
+      if(res && (res.stdout !== undefined || res.stderr !== undefined || res.exit_code !== undefined)){
+        const lines = [];
+        if(res.stdout) lines.push(...res.stdout.split('\n'));
+        if(res.stderr) lines.push(...res.stderr.split('\n').map(l => A(31, l)));
+        if(lines.length === 0 && res.exit_code === 0) lines.push(A(32, '✓ (process exited with code 0)'));
+        else if(lines.length === 0 && res.exit_code !== 0) lines.push(A(31, '✗ (process exited with code ' + res.exit_code + ')'));
+        while(lines.length && lines[lines.length - 1] === '') lines.pop();
+        if(lines.length) await P(lines);
+        return;
+      }
+    } catch(err){
+      console.warn('Live termux execution notice:', err);
+    }
+  }
+
+  // 2. Built-in simulated fallback
   if(bin==='help')return P(['Commands: help, ls, pwd, whoami, date, clear, echo, df, color, yt-dlp <url>, pip install <pkg>, pkg install <pkg>']);
   if(bin==='ls')return P([A(34,'Downloads')+'  '+A(34,'Documents')+'  '+A(34,'scripts')+'  '+A(34,'projects')+'  '+A(34,'logs')+'  '+A(32,'run.sh')]);
   if(bin==='pwd')return P(['/data/data/com.termux/files/home']);
@@ -705,7 +748,8 @@ async function runShell(cmd,si){const c=cmd.trim();if(!c)return;const [bin,...re
   if(bin==='pkg'||bin==='pip'){if(!rest.length)return P([A(31,'usage: '+bin+' install <package>')]);const name=rest.slice(1).join(' ')||rest[0];
     await P([A(36,'Reading package lists... Done'),A(36,'Resolving '+name+' ...')]);await termProgress(si,A(90,'Downloading ')+name,1600);await P([A(33,'Unpacking '+name+'...'),A(32,'✓ '+name+' installed (simulated, connect your engine for real installs)')]);return}
   if(bin==='yt-dlp'){if(!rest.length)return P([A(31,'Usage: yt-dlp <url>')]);await P([A(36,'[youtube] Extracting URL: '+rest[0]),A(90,'[info] Downloading video')]);await termProgress(si,A(33,'[download]'),2200);await P([A(32,'✓ Saved to Downloads/')]);return}
-  return P([A(31,bin+': command not found')])}
+  return P([A(31,bin+': command not found')])
+}
 /* ---------- Live agent: last item in the Agent folder ---------- */
 function openLive(){openPage($('pgLive'));renderLive()}
 function renderLive(){
@@ -859,4 +903,84 @@ if('serviceWorker' in navigator && (location.protocol === 'https:' || location.h
       console.warn('Echoo ServiceWorker registration failed', err);
     });
   });
+}
+
+
+/* ---------- EngineClient Real-time Status Badge & Integration ---------- */
+if(window.EngineClient){
+  window.EngineClient.onStatusChange((online, status) => {
+    let badge = document.getElementById('engineBadge');
+    if(!badge){
+      const brandRow = document.querySelector('.brandrow');
+      if(brandRow){
+        badge = document.createElement('span');
+        badge.id = 'engineBadge';
+        badge.style.cssText = 'display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;margin-left:auto;transition:all .3s ease';
+        const brand = brandRow.querySelector('.brand');
+        if(brand && brand.nextSibling){
+          brandRow.insertBefore(badge, brand.nextSibling);
+        } else {
+          brandRow.appendChild(badge);
+        }
+      }
+    }
+    if(badge){
+      if(online){
+        badge.style.background = '#2e9e5b22';
+        badge.style.color = '#2e9e5b';
+        badge.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#2e9e5b;display:inline-block;animation:blink 1.4s infinite"></span> Engine Active';
+        badge.title = 'Antigravity Hub & Go Server Connected (:1234 & :1235)';
+      } else {
+        badge.style.background = '#8a8a8f22';
+        badge.style.color = '#8a8a8f';
+        badge.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:#8a8a8f;display:inline-block"></span> Local Mode';
+        badge.title = 'Engine bridge offline. Start airlechoo.sh to enable live daemon.';
+      }
+    }
+  });
+
+  // Sync real models dynamically
+  window.EngineClient.getModels().then(list => {
+    if(Array.isArray(list) && list.length > 0){
+      const menu = document.getElementById('modelMenu');
+      if(menu){
+        menu.innerHTML = list.map(m => `
+          <button class="mi ${m.id === curModel ? 'sel' : ''}" data-m="${m.id}">
+            <span style="flex:1">
+              <b>${esc(m.name)}</b>
+              <small class="muted" style="display:block;font-size:11.5px">${esc(m.desc || m.provider || '')}</small>
+            </span>
+            <span class="radio"></span>
+          </button>
+        `).join('');
+        menu.querySelectorAll('.mi').forEach(b => {
+          b.onclick = () => {
+            curModel = b.dataset.m;
+            const modelObj = list.find(x => x.id === curModel);
+            if(modelObj && $('modelName')) $('modelName').textContent = modelObj.name;
+            closeModel();
+            menu.querySelectorAll('.mi').forEach(x => x.classList.toggle('sel', x.dataset.m === curModel));
+            toast('Model: ' + (modelObj ? modelObj.name : curModel));
+          };
+        });
+      }
+    }
+  }).catch(()=>{});
+
+  // Merge live projects into projects list
+  window.EngineClient.getProjects().then(liveProjs => {
+    if(Array.isArray(liveProjs) && liveProjs.length > 0){
+      liveProjs.forEach(lp => {
+        if(!projects.find(p => p.name === lp.name)){
+          projects.push({
+            id: lp.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            name: lp.name,
+            path: lp.path,
+            files: []
+          });
+        }
+      });
+      if($('pgProjects').classList.contains('open')) renderProjects();
+    }
+  }).catch(()=>{});
 }
