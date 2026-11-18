@@ -1,0 +1,25 @@
+{
+  "name": "Echoo — AI Assistant",
+  "short_name": "Echoo",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#121214",
+  "theme_color": "#121214",
+  "description": "AIRLECHOO — Advanced Agentic AI Assistant for Android with Task Planning, Live Voice, Code Editor, MCP Tools and Terminal",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "assets/images/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/images/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "airlechoo",
+  "version": "1.0.0",
+  "description": "AIRLECHOO — Advanced Agentic AI Assistant for Android with Task Planning, Live Voice, Code Editor, MCP Tools and Terminal",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "serve": "python3 -m http.server 8080"
+  },
+  "keywords": [
+    "ai",
+    "agentic",
+    "assistant",
+    "android",
+    "pwa",
+    "echoo"
+  ],
+  "author": "razpreetwander <razpreetwander@gmail.com>",
+  "license": "MIT"
+}

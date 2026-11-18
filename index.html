@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Echoo — AI Assistant</title>
+  <meta name="description" content="AIRLECHOO Agentic AI Assistant for Android">
+  <meta name="theme-color" content="#121214" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  <link rel="apple-touch-icon" href="assets/images/logo.png">
+  <link rel="manifest" href="manifest.json">
+  <!-- Google Fonts: Bebas Neue for brand & Plus Jakarta Sans for UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+
+<div class="app">
+<aside class="sidebar closed" id="sidebar">
+  <div class="brandrow">
+    <div class="logo"><img src="assets/images/logo.png" alt="Echoo Logo"></div>
+    <div class="brand">ECHOO</div>
+    <button class="iconbtn" id="sidebarClose" title="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="navwrap">
+    <button class="navbtn active" id="newConv"><svg viewBox="0 0 24 24"><path d="M12 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-5"/><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>New conversation</button>
+    <div class="menu" id="convMenu" style="left:6px;top:44px;min-width:250px">
+      <button class="mi" data-c="chat"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>New chat</button>
+      <button class="mi" data-c="task"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8 12 3 3 5-6"/></svg>Tasks</button>
+      <button class="mi" data-c="auto"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Automation</button>
+    </div>
+  </div>
+  <button class="navbtn" id="searchChats"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7.5"/><path d="m16.5 16.5 4 4"/></svg>Search chats</button>
+  <button class="navbtn hi" id="projects"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2.5h6.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg>Projects</button>
+  <div class="folder" id="agentFolder"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3.5"/><path d="M3.5 9.5h17"/></svg><span>Agent</span><small><i class="dot" id="agentDot" style="display:none"></i><span id="agentSub">Idle</span></small></div>
+  <div class="navsection">
+    <button id="allToggle" aria-expanded="true" style="border:0;background:none;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:4px">All <svg viewBox="0 0 24 24" style="width:16px;height:16px;transform:rotate(90deg)"><path d="m9 6 6 6-6 6"/></svg></button>
+    <button class="iconbtn" id="filterBtn" title="Filter" style="width:30px;height:30px;color:var(--muted)"><svg viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M4 5h16l-6 8v6l-4-2v-4z"/></svg></button>
+  </div>
+  <div class="menu" id="filterMenu" style="right:6px;min-width:200px">
+    <button class="mi" data-f="all">All<span class="radio"></span></button>
+    <button class="mi" data-f="chat">Chats<span class="radio"></span></button>
+    <button class="mi" data-f="task">Tasks<span class="radio"></span></button>
+    <button class="mi" data-f="automation">Automations<span class="radio"></span></button>
+  </div>
+  <div class="chatlist" id="chatlist"></div>
+  <div class="profile">
+    <div class="pbtn" id="profOpen"><div class="avatar" id="sbAvatar">R</div><div class="profile-meta"><div id="sbName">razpreet wander</div><div class="muted">Pro</div></div></div>
+    <button class="iconbtn" id="settings" title="Settings"><img class="ico" src="assets/images/settings.png" alt="Settings"></button>
+  </div>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<main class="main">
+  <header class="topbar">
+    <button class="iconbtn topleft" id="sidebarOpen" title="Sidebar"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="5"/><path d="M8 9.5v5"/></svg></button>
+    <div class="modelwrap topleft" id="modelWrap">
+      <button class="model-select" id="modelBtn"><span id="modelName"><b>ECHOO</b> Astar</span><svg viewBox="0 0 24 24" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="menu" id="modelMenu" style="left:0;top:calc(100% + 6px);min-width:250px">
+        <button class="mi sel" data-model="Astar"><div><div class="mname"><b>ECHOO</b> Astar</div><div class="mdesc">Fast, for everyday work</div></div><svg class="mcheck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>
+        <button class="mi" data-model="Astar Pro"><div><div class="mname"><b>ECHOO</b> Astar Pro</div><div class="mdesc">Deeper thinking, for harder work</div></div><svg class="mcheck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>
+      </div>
+    </div>
+    <button class="chattitle" id="chatTitle" style="display:none" title="Rename or pin"></button><div class="top-spacer"></div>
+    <button class="iconbtn" id="ghostBtn" title="Incognito chat"><img class="ico" src="assets/images/incognito.png" alt="Incognito"></button>
+  </header>
+
+  <section class="workspace" id="workspace">
+    <div class="welcome" id="welcome">
+      <img src="assets/images/echoo-hero.png" alt="Echoo">
+      <h1>Live conversation and quick work</h1>
+      <p>Talk live with your AI agent and get any task done easily.</p>
+      <button class="startlive" id="welcomeLive">Start live conversation</button>
+    </div>
+    <div class="ghostscreen" id="ghostScreen">
+      <img src="assets/images/ghost-hero.png" alt="Incognito">
+      <h2>Incognito chat</h2>
+      <p>This chat won't be saved, and its data is permanently deleted within 24 hours.</p>
+    </div>
+    <div class="messages" id="messages"></div>
+  </section>
+
+  <div class="composer-wrap">
+    <div class="popmenu" id="popmenu">
+      <label class="mi" for="photoInput"><span class="menuico"><svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="3.5"/><circle cx="15" cy="9.5" r="1.8"/><path d="m4 17 5-5 7 6"/></svg></span>Photos</label>
+      <label class="mi" for="cameraInput"><span class="menuico"><svg viewBox="0 0 24 24"><path d="M4 8.5a2 2 0 0 1 2-2h1.6l1.2-2h6.4l1.2 2H18a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.3"/></svg></span>Camera</label>
+      <label class="mi" for="audioInput"><span class="menuico"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 3.5v17M16 7v10M20 10v4"/></svg></span>Audio</label>
+      <label class="mi" for="fileInput"><span class="menuico"><svg viewBox="0 0 24 24"><path d="M16.5 8.5v8a4.5 4.5 0 0 1-9 0V7a3 3 0 0 1 6 0v9a1.5 1.5 0 0 1-3 0V9"/></svg></span>Files</label>
+      <button class="mi" id="deepThink"><span class="menuico"><svg viewBox="0 0 24 24"><path d="M4.5 17.5a8.5 8.5 0 1 1 15 0"/><path d="m12 15 4-5"/><circle cx="12" cy="15" r="1.3" fill="currentColor"/></svg></span>Deep thinking</button>
+    </div>
+    <div class="composer" id="composer">
+      <div class="c-top" id="cTop"></div>
+      <div class="c-row">
+        <button class="circlebtn" id="attachBtn" title="Attach"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        <textarea id="prompt" rows="1" aria-label="Message" placeholder="Ask Echoo"></textarea>
+        <button class="circlebtn" id="micBtn" title="Dictate"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
+        <button class="circlebtn sendbtn" id="sendBtn" title="Live conversation"><span class="wave"><svg viewBox="0 0 24 24" stroke-width="2.6"><path d="M5 10v4M8.5 6.5v11M12 3.5v17M15.5 7.5v9M19 10v4"/></svg></span><span class="arrow"><svg viewBox="0 0 24 24" stroke-width="2.4"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></span><span class="stopi"></span></button>
+      </div>
+    </div>
+    <div class="rec-bar" id="recBar">
+      <button class="circlebtn" id="recCancel" title="Cancel"><svg viewBox="0 0 24 24" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      <div class="rec-mid"><canvas id="recWave"></canvas></div>
+      <button class="circlebtn rec-stop" id="recStop" title="Stop"><i></i></button>
+      <button class="circlebtn rec-send" id="recSend" title="Send"><svg viewBox="0 0 24 24" stroke-width="2.4"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button>
+    </div>
+  </div>
+  <input hidden id="photoInput" type="file" accept="image/*" multiple><input hidden id="cameraInput" type="file" accept="image/*" capture="environment"><input hidden id="audioInput" type="file" accept="audio/*" multiple><input hidden id="fileInput" type="file" multiple>
+
+  <div class="live-screen" id="liveScreen">
+    <div class="live-top"><i></i>LIVE</div>
+    <div class="live-mid">
+      <img class="live-orb" id="liveOrb" src="assets/images/live-orb.webp" alt="Live Orb">
+      <p id="liveStatus">Tap the mic and start talking</p>
+      <div class="live-caption" id="liveCaption"></div>
+    </div>
+    <div class="live-bar">
+      <input id="liveInput" class="live-input" placeholder="Ask Echoo" autocomplete="off">
+      <button class="lbtn" id="liveSpeak" title="Speaker"><svg viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path class="wv" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/><path class="slash" d="M4 4l16 16"/></svg></button>
+      <button class="lbtn" id="liveMute" title="Microphone"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/><path class="slash" d="M4 4l16 16"/></svg></button>
+      <button class="lbtn end" id="liveEnd" title="End"><svg viewBox="0 0 24 24" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+  </div>
+
+  <div class="msgmenu" id="msgMenu"></div>
+
+  <!-- Search -->
+  <section class="page" id="pgSearch"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Search chats</h3></div>
+    <div class="pbody"><div class="sec">Recent</div><div id="chatRes"></div></div>
+    <div class="search-bar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="chatQ" placeholder="Search for chats" autocomplete="off"></div></section>
+
+  <!-- Projects list -->
+  <section class="page" id="pgProjects"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Projects</h3><button class="phr" id="newProjBtn">+ New project</button></div>
+    <div class="pbody" id="projBody"></div></section>
+
+  <!-- Agent project: folders in order -->
+  <section class="page" id="pgAgent"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Agent</h3></div>
+    <div class="pbody" id="agentBody"></div></section>
+
+  <!-- User project: chat | files | preview -->
+  <section class="page" id="pgProject"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3 id="prTitle">Project</h3></div>
+    <div class="ptabs" id="prTabs"><button class="pill on" data-p="pchat">Chat</button><button class="pill" data-p="pfiles">Files</button><button class="pill" data-p="ppreview">Preview</button></div>
+    <div class="p3" id="prBody"></div></section>
+  <section class="page" id="pgEditor"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3 id="edTitle">File</h3></div>
+    <div class="edbar" id="edBar"><button data-k="undo">Undo</button><button data-k="redo">Redo</button><button data-k="cut">Cut</button><button data-k="copy">Copy</button><button data-k="paste">Paste</button><button data-k="all">Select all</button></div>
+    <div class="edwrap"><pre id="edLines" aria-hidden="true">1</pre><textarea id="edText" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></div></section>
+
+  <section class="page" id="pgTasks"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Tasks</h3><button class="phr" id="newTaskBtn">+ New task</button></div>
+    <div class="pbody">
+      <div class="stats">
+        <div class="stat"><b id="sTotal">0</b><span>Total</span></div>
+        <div class="stat"><b id="sRun">0</b><span>Running</span></div>
+        <div class="stat"><b id="sWait">0</b><span>Waiting</span></div>
+        <div class="stat"><b id="sDone">0</b><span>Completed</span></div>
+        <div class="stat"><b id="sFail">0</b><span>Failed</span></div>
+      </div>
+      <div class="tabs" id="taskTabs">
+        <button class="pill on" data-tab="results">Results</button>
+        <button class="pill" data-tab="errors">Errors</button>
+        <button class="pill" data-tab="perms">Permissions</button>
+        <button class="pill" data-tab="summary">Summary report</button>
+      </div>
+      <div id="taskTabBody"></div>
+    </div></section>
+
+  <section class="page" id="pgNewTask"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>New task</h3></div>
+    <div class="pbody" id="newTaskBody"></div></section>
+
+  <section class="page" id="pgTask"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3 id="tdTitle">Task</h3></div>
+    <div class="pbody" id="taskBody"></div></section>
+
+  <section class="page" id="pgAutos"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Automations</h3><button class="phr" id="newAutoBtn">+ New</button></div>
+    <div class="pbody" id="autoBody"></div></section>
+
+  <section class="page" id="pgAutoEdit"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3 id="aeTitle">New automation</h3></div>
+    <div class="pbody" id="autoEditBody"></div></section>
+
+  <section class="page" id="pgTools"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Tools</h3></div>
+    <div class="pbody" id="toolsBody"></div></section>
+
+  <section class="page" id="pgPerms"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Permissions</h3></div>
+    <div class="pbody" id="permsBody"></div></section>
+
+  <section class="page" id="pgPlanning"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Planning</h3></div>
+    <div class="pbody" id="planBody"></div></section>
+
+  <!-- Terminal: Termux look -->
+  <section class="page full" id="pgTerminal" style="background:#000;color:#fff"><div id="tmHead" style="height:44px;background:#d6d6d6;color:#000;display:flex;align-items:center;gap:6px;padding:0 6px;flex-shrink:0">
+      <button class="back" aria-label="Back" style="width:32px;height:32px;color:#000;display:grid;place-items:center"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+      <div id="tmTabs" style="display:flex;gap:4px;align-items:center;flex:1;overflow-x:auto;min-width:0"></div>
+    </div>
+    <div id="termOut" style="flex:1;overflow:auto;padding:8px 10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.35;color:#fff"></div>
+    <div id="tmPill" style="position:absolute;left:50%;bottom:150px;transform:translateX(-50%);background:#fff;color:#000;border-radius:20px;padding:6px 14px;font-family:ui-monospace,Menlo,monospace;font-size:13px;display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap"></div>
+    <div id="tmKeys" style="background:#000;color:#fff;font-family:ui-monospace,Menlo,monospace;font-size:12px;border-top:1px solid #222;flex-shrink:0">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center"><button data-key="ESC">ESC</button><button data-key="/">/</button><button data-key="—">—</button><button data-key="HOME">HOME</button><button data-key="↑">↑</button><button data-key="END">END</button><button data-key="PGUP">PGUP</button></div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center"><button data-key="TAB">TAB</button><button data-key="CTRL">CTRL</button><button data-key="ALT">ALT</button><button data-key="←">←</button><button data-key="↓">↓</button><button data-key="→">→</button><button data-key="PGDN">PGDN</button></div>
+    </div>
+    <div id="tmBar" style="height:48px;background:#d6d6d6;color:#000;display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0">
+      <button id="tmKb" aria-label="Keyboard" style="width:40px;height:40px;display:grid;place-items:center;color:#000"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>
+      <button id="tmNew" aria-label="New session" style="width:40px;height:40px;display:grid;place-items:center;color:#000;font-size:24px;line-height:1">+</button>
+    </div></section>
+
+  <!-- Live agent: last item in Agent folder -->
+  <section class="page" id="pgLive"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Live agent</h3></div>
+    <div class="pbody" id="liveBody"></div></section>
+
+  <section class="page" id="pgSettings"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3>Settings</h3></div><div class="pbody" id="setBody"></div><div class="search-bar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg><input id="setQ" placeholder="Search settings" autocomplete="off"></div></section>
+  <section class="page" id="pgSub"><div class="ph"><button class="iconbtn back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h3 id="subT"></h3></div><div class="pbody" id="subB"></div></section>
+
+  <div class="sheet-bg" id="sheetBg"></div><div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"></div>
+</main>
+</div>
+
+
+  <script src="src/js/app.js"></script>
+</body>
+</html>
