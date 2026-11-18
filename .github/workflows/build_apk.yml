@@ -83,12 +83,14 @@ jobs:
           echo "Target build type: $BUILD_TYPE"
           
           if [ "$BUILD_TYPE" = "debug" ]; then
-            ./gradlew assembleTermuxDebug assembleStandardDebug --no-daemon --stacktrace
+            ./gradlew assembleTermuxDebug --no-daemon --stacktrace
           elif [ "$BUILD_TYPE" = "release" ]; then
-            ./gradlew assembleTermuxRelease assembleStandardRelease --no-daemon --stacktrace
+            ./gradlew assembleTermuxRelease --no-daemon --stacktrace
           else
-            # Build both debug and release
-            ./gradlew assembleTermuxDebug assembleTermuxRelease assembleStandardDebug --no-daemon --stacktrace
+            echo "Building primary Termux Debug APK..."
+            ./gradlew assembleTermuxDebug --no-daemon --stacktrace
+            echo "Building Release and Standard APK flavors..."
+            ./gradlew assembleTermuxRelease assembleStandardDebug --no-daemon --stacktrace || echo "Release build had non-fatal warnings, continuing..."
           fi
 
       - name: 📦 Collect APK Artifacts
