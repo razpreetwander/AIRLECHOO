@@ -34,8 +34,11 @@
     }
 
     get authHeader() {
-      const headerName = buildFramedHeader(this.token);
-      return { [headerName]: this.token };
+      const activeToken = (window.AndroidBridge && typeof window.AndroidBridge.getAuthToken === 'function')
+        ? window.AndroidBridge.getAuthToken()
+        : this.token;
+      const headerName = buildFramedHeader(activeToken);
+      return { [headerName]: activeToken };
     }
 
     async init() {
@@ -210,6 +213,17 @@
 
     // --- Real Termux Terminal Execution ---
     async execCommand(command, cwd = null) {
+      // 1. Direct native execution if running inside the Android APK
+      if (window.AndroidBridge && typeof window.AndroidBridge.execTermuxCommand === 'function') {
+        try {
+          const resStr = window.AndroidBridge.execTermuxCommand(command);
+          if (resStr) return JSON.parse(resStr);
+        } catch (e) {
+          console.warn('Native bridge exec fallback to HTTP:', e);
+        }
+      }
+
+      // 2. HTTP Terminal Bridge (:1236)
       try {
         const resp = await fetch(`${this.terminalUrl}/api/terminal/exec`, {
           method: 'POST',
@@ -221,7 +235,6 @@
         }
         return await resp.json();
       } catch (err) {
-        // Fallback: If python terminal bridge is not running, check bridge /api/agy/cli
         return {
           exit_code: 1,
           stdout: '',
